@@ -40,12 +40,12 @@ genvar r, c;
 
 generate
     for (r=0; r<ROWS; r=r+1) begin
-        assign r_ot_bus[(r+1)*D_BW-1 -: D_BW] = w_hor[r*COLS*D_BW+COLS*D_BW-1 -: D_BW];
+        assign r_ot_bus[(r+1)*D_BW-1 -: D_BW] = w_hor[(r*D_BW)+(c*COLS+(r+1))*D_BW-1 -: D_BW];
     end
 
     for (c=0; c<COLS; c=c+1) begin
         assign c_ot_bus[(c+1)*D_BW-1 -: D_BW] = w_ver[(c*ROWS+ROWS)*D_BW-1 -: D_BW];
-     //   assign r_ot_ps[(c+1)*AK_BW-1 -: AK_BW] = w_ot_ps[(c+1)*AK_BW-1 -: AK_BW];
+        //assign r_ot_ps[(c+1)*AK_BW-1 -: AK_BW] = w_ot_ps[(c+1)*AK_BW-1 -: AK_BW];
     end
 
     for (r=0; r<ROWS; r=r+1) begin : gen_row
@@ -57,10 +57,10 @@ generate
                 localparam VER_SIG_R3_SET       = (r+1)*(M_BW+3);
                 localparam VER_SIG_R4_SET       = (r+1)*(M_BW+4);
 
-                localparam HOR_OUTPUT_OFFSET    = (r*COLS+(c+1))*D_BW;
+                localparam HOR_OUTPUT_OFFSET    = (c*COLS+(r+1))*D_BW;
                 localparam HOR_INPUT_OFFSET     = ((c-1)*ROWS+(r+1))*D_BW;
 
-                localparam VER_OUTPUT_OFFSET    = (c*ROWS+(r+1))*D_BW;
+                localparam VER_OUTPUT_OFFSET    = (r*ROWS+(c+1))*D_BW;
                 localparam VER_INPUT_OFFSET     = ((r-1)*COLS+(c+1))*D_BW;
 
                 localparam PE_SIG_OFFSET        = ((r*ROWS)+c);
