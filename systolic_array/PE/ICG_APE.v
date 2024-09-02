@@ -16,7 +16,6 @@ module ICG_APE #(
 
     input   [I_F_BW-1:0]    i_fmap, 
     input   [W_BW-1:0]      i_weight,
-    input   [M_BW-1:0]      in_pp,
 
     output  [I_F_BW-1:0]    o_fmap, 
     output  [W_BW-1:0]      o_weight,
@@ -24,19 +23,15 @@ module ICG_APE #(
 );
 
 reg  [W_BW-1:0]     r_weight_mul;
-reg  [AK_BW-1:0]    r_sum_pp;
 
 wire [I_F_BW-1:0]   w_i_fmap;
 wire [W_BW-1:0]     w_i_weight;
 wire [M_BW-1:0]     w_ot_mul;
-wire [AK_BW-1:0]    w_sum;
 
 wire [I_F_BW-1:0]   w_next_fmap;
 wire [W_BW-1:0]     w_next_weight;
 wire [W_BW-1:0]     w_reg_weight;
 wire [W_BW-1:0]     w_mul_weight;
-
-wire [AK_BW-1:0]    w_ot_acc;
 
 wire en_clk;
 
@@ -70,21 +65,12 @@ demux #(.DWIDTH(W_BW)) u_demux (
     .q1(w_mul_weight)       // mul_en이 1일 때만 w_mul_weight에 값 전달
 );
 
+// 곱셈 모듈
 top_comp u_MAC (.i_fmap(w_i_fmap), .i_weight(w_mul_weight), .o_mul(w_ot_mul));
 
-// Sum reg
-always @ (posedge en_clk or negedge rst_n) begin
-    if (!rst_n) begin
-        r_sum_pp <= 0;
-    end else begin
-        r_sum_pp <= w_sum;
-    end
-end
-
-assign w_sum = w_ot_mul + in_pp;
 assign o_fmap = w_next_fmap;
 assign o_weight = w_next_weight;
 
-assign o_acc_kernel = r_sum_pp;
+assign o_acc_kernel = w_ot_mul;
 
 endmodule
