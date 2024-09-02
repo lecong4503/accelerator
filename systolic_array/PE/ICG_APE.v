@@ -13,7 +13,6 @@ module ICG_APE #(
     input                   str_en,     // store to data enable signal
     input                   mul_en,     // mul enable signal
     input                   pe_en,      // pe enable signal
-    input                   npe_en,     // next pe enable signal
 
     input   [I_F_BW-1:0]    i_fmap, 
     input   [W_BW-1:0]      i_weight,
@@ -67,8 +66,8 @@ assign w_reg_weight = r_weight_mul;
 demux #(.DWIDTH(W_BW)) u_demux (
     .d(w_reg_weight),
     .s(mul_en),
-    .q0(),          // 이 출력은 사용되지 않음
-    .q1(w_mul_weight)    // mul_en이 1일 때만 w_mul_weight에 값 전달
+    .q0(),                  // 이 출력은 사용되지 않음
+    .q1(w_mul_weight)       // mul_en이 1일 때만 w_mul_weight에 값 전달
 );
 
 top_comp u_MAC (.i_fmap(w_i_fmap), .i_weight(w_mul_weight), .o_mul(w_ot_mul));

@@ -10,11 +10,14 @@ module systolic_5x5 #(
 (
     input                           clk,
     input                           rst_n,
+    
     input   [ROWS+(COLS-1)-1:0]     mul_en,
     input   [ROWS-1:0]              str_en,
     input   [(ROWS*COLS)-1:0]       pe_en,
+
     input   [(D_BW*ROWS)-1:0]       i_fmap,
     input   [(D_BW*COLS)-1:0]       i_weight,
+
     output  [(D_BW*ROWS)-1:0]       o_fmap,
     output  [(D_BW*COLS)-1:0]       o_weight,
     output  [(AK_BW*COLS)-1:0]      o_acc_kernel
