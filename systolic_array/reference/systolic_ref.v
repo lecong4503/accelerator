@@ -66,8 +66,10 @@ begin
                 .fsm_op2_select_in(ctl_dummy_fsm_op2_select_in),
                 .fsm_out_select_in(ctl_dummy_fsm_out_select_in),
                 .stat_bit_in(ctl_stat_bit_in),
+
                 .left_in(left_in_bus[(r+1) * WORD_SIZE -1 -: WORD_SIZE]),
                 .top_in(top_in_bus[(c+1) * WORD_SIZE - 1 -: WORD_SIZE]),
+
                 .right_out(hor_interconnect[HORIZONTAL_SIGNAL_OFFSET - 1 -: WORD_SIZE]),
                 .bottom_out(ver_interconnect[VERTICAL_SIGNAL_OFFSET -1 -: WORD_SIZE])
             );
@@ -85,8 +87,10 @@ begin
                 .fsm_op2_select_in(ctl_dummy_fsm_op2_select_in),
                 .fsm_out_select_in(ctl_dummy_fsm_out_select_in),
                 .stat_bit_in(ctl_stat_bit_in),
+
                 .left_in(left_in_bus[(r+1) * WORD_SIZE -1 -: WORD_SIZE]),
                 .top_in(ver_interconnect[TOP_PEER_OFFSET -1 -: WORD_SIZE]),
+
                 .right_out(hor_interconnect[HORIZONTAL_SIGNAL_OFFSET -1 -: WORD_SIZE]),
                 .bottom_out(ver_interconnect[VERTICAL_SIGNAL_OFFSET -1 -: WORD_SIZE])
             );
@@ -104,8 +108,10 @@ begin
                 .fsm_op2_select_in(ctl_dummy_fsm_op2_select_in),
                 .fsm_out_select_in(ctl_dummy_fsm_out_select_in),
                 .stat_bit_in(ctl_stat_bit_in),
+
                 .left_in(hor_interconnect[LEFT_PEER_OFFSET - 1 -: WORD_SIZE]),
                 .top_in(top_in_bus[(c+1) * WORD_SIZE - 1 -: WORD_SIZE]),
+
                 .right_out(hor_interconnect[HORIZONTAL_SIGNAL_OFFSET -1 -: WORD_SIZE]),
                 .bottom_out(ver_interconnect[VERTICAL_SIGNAL_OFFSET -1 -: WORD_SIZE])
             );
@@ -124,8 +130,10 @@ begin
                 .fsm_op2_select_in(ctl_dummy_fsm_op2_select_in),
                 .fsm_out_select_in(ctl_dummy_fsm_out_select_in),
                 .stat_bit_in(ctl_stat_bit_in),
+
                 .left_in(hor_interconnect[LEFT_PEER_OFFSET - 1 -: WORD_SIZE]),
                 .top_in(ver_interconnect[TOP_PEER_OFFSET -1 -: WORD_SIZE]),
+                
                 .right_out(hor_interconnect[HORIZONTAL_SIGNAL_OFFSET -1 -: WORD_SIZE]),
                 .bottom_out(ver_interconnect[VERTICAL_SIGNAL_OFFSET -1 -: WORD_SIZE])
             );

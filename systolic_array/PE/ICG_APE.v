@@ -3,8 +3,7 @@
 module ICG_APE #(
     parameter I_F_BW = 8,
     parameter W_BW = 8,
-    parameter M_BW = 16,
-    parameter AK_BW = 20
+    parameter M_BW = 16
 )
 (
     input                   clk,
@@ -19,7 +18,7 @@ module ICG_APE #(
 
     output  [I_F_BW-1:0]    o_fmap, 
     output  [W_BW-1:0]      o_weight,
-    output  [AK_BW-1:0]     o_acc_kernel
+    output  [M_BW-1:0]      o_acc_kernel
 );
 
 reg  [W_BW-1:0]     r_weight_mul;
