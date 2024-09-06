@@ -27,7 +27,7 @@ module top_acc #(
     localparam SUB  = 2'b10;
 //////////////////////////////////////////////////////
     localparam ACC_LINE = 5;
-    localparam MUL_WHOLE_BW = 80;
+    localparam MUL_WHOLE_BW = M_BW*COLS;
 //////////////////////////////////////////////////////
 
     reg [1:0] r_state;
