@@ -16,7 +16,7 @@ module tile_FSM #(
 );
 //////////////////////////////////////////////////////
     // calculator mode state
-    localparam S_IDLE = 2'b00;
+    localparam S_IDLE = 2'b00;  
     localparam S_FULL = 2'b01;
     localparam S_PART = 2'b10;
     // layer mode state

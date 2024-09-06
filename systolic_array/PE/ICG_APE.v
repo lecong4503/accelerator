@@ -18,7 +18,7 @@ module ICG_APE #(
 
     output  [I_F_BW-1:0]    o_fmap, 
     output  [W_BW-1:0]      o_weight,
-    output  [M_BW-1:0]      o_acc_kernel
+    output  [M_BW-1:0]      o_mul_result
 );
 
 reg  [W_BW-1:0]     r_weight_mul;
