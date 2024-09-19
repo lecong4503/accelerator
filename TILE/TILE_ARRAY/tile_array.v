@@ -5,6 +5,7 @@ module tile_array #(
     parameter W_BW = 8,
     parameter M_BW = 16,
     parameter AK_BW = 20,
+    parameter AC_BW = 24,
     parameter ROWS = 5,
     parameter COLS = 5,
     parameter T_ROWS = 5,       // tile array ROWS
@@ -22,7 +23,7 @@ module tile_array #(
     input   [(I_F_BW*COLS*T_COLS)-1:0]      i_fmap,
     input   [(W_BW*ROWS*T_ROWS)-1:0]        i_weight,
     
-    output  [(M_BW*COLS*ROWS*T_ROWS)-1:0]   o_mul_result 
+    output  [(AC_BW*COLS*T_ROWS)-1:0]       o_acc_kernel 
 );
 
     wire [(I_F_BW*COLS*T_COLS)-1:0]         r_in_bus;
@@ -32,7 +33,7 @@ module tile_array #(
 
     wire [(I_F_BW*ROWS*COLS*T_ROWS)-1:0]    w_hor;
     wire [(W_BW*COLS*ROWS*T_COLS)-1:0]      w_ver;
-    wire [(AK_BW*COLS*ROWS*T_COLS)-1:0]      w_acc;
+    wire [(AK_BW*COLS*ROWS*T_COLS)-1:0]     w_acc;
 
     genvar r, c;
 
@@ -66,7 +67,7 @@ module tile_array #(
 
                         .o_fmap(w_hor[HOR_OUTPUT_OFFSET-1 -: I_F_BW*COLS]),
                         .o_weight(w_ver[VER_OUTPUT_OFFSET-1 -: W_BW*ROWS]),
-                        .o_mul_result(w_acc[ACC_OFFSET-1 -: AK_BW*ROWS])
+                        .o_acc_pp(w_acc[ACC_OFFSET-1 -: AK_BW*ROWS])
                     );
 
                 end else if (c==0) begin
@@ -83,7 +84,7 @@ module tile_array #(
 
                         .o_fmap(w_hor[HOR_OUTPUT_OFFSET-1 -: I_F_BW*COLS]),
                         .o_weight(w_ver[VER_OUTPUT_OFFSET-1 -: W_BW*ROWS]),
-                        .o_mul_result(w_acc[ACC_OFFSET-1 -: AK_BW*ROWS])
+                        .o_acc_pp(w_acc[ACC_OFFSET-1 -: AK_BW*ROWS])
                     );
 
                 end else if (r==0) begin
@@ -101,7 +102,7 @@ module tile_array #(
 
                         .o_fmap(w_hor[HOR_OUTPUT_OFFSET-1 -: I_F_BW*COLS]),
                         .o_weight(w_ver[VER_OUTPUT_OFFSET-1 -: W_BW*ROWS]),
-                        .o_mul_result(w_acc[ACC_OFFSET-1 -: AK_BW*ROWS])
+                        .o_acc_pp(w_acc[ACC_OFFSET-1 -: AK_BW*ROWS])
                     );
 
                 end else begin
@@ -119,7 +120,7 @@ module tile_array #(
 
                         .o_fmap(w_hor[HOR_OUTPUT_OFFSET-1 -: I_F_BW*COLS]),
                         .o_weight(w_ver[VER_OUTPUT_OFFSET-1 -: W_BW*ROWS]),
-                        .o_mul_result(w_acc[ACC_OFFSET-1 -: AK_BW*ROWS])
+                        .o_acc_pp(w_acc[ACC_OFFSET-1 -: AK_BW*ROWS])
                     );
                 end
             end
@@ -127,17 +128,29 @@ module tile_array #(
     endgenerate
 
     wire [AK_BW*COLS*T_COLS-1:0] w_tile_acc [T_COLS-1:0];
+    wire [AC_BW*COLS-1:0] w_ot_tile_acc [T_COLS-1:0];
 
     genvar i;
     generate
         for (i=0; i<T_COLS; i=i+1) begin
-            w_tile_acc[i] = w_acc[(i+1)*AK_BW*COLS*T_COLS-1 -: AK_BW*COLS*T_COLS];
+            assign w_tile_acc[i] = w_acc[(i+1)*AK_BW*COLS*T_COLS-1 -: AK_BW*COLS*T_COLS];
+
+            top_acc #(
+                .M_BW(20),
+                .AK_BW(24)
+            ) u_tile_acc (
+                .clk(clk),
+                .rst_n(rst_n),
+                .i_layer_state(i_layer_state),
+                .i_mul_result(w_tile_acc[i]),
+                .o_acc_kernel(w_ot_tile_acc[i])
+            );
         end
     endgenerate
 
     assign r_in_bus = i_fmap;
     assign c_in_bus = i_weight;
-    
-    assign o_mul_result = w_acc;
+
+    assign o_acc_kernel = {w_ot_tile_acc[4], w_ot_tile_acc[3], w_ot_tile_acc[2], w_ot_tile_acc[1], w_ot_tile_acc[0]};
 
 endmodule

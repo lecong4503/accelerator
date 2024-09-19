@@ -10,7 +10,7 @@ module accumulator #(
     input                           rst_n,
     input       [1:0]               i_mul_loop,
     input       [M_BW*COLS-1:0]     i_mul_result,
-    output reg  [AK_BW-1:0]         o_acc_kernel
+    output reg  [AK_BW-*1:0]         o_acc_kernel
 );
     
     localparam CONV = 2'b01;

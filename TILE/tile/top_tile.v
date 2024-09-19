@@ -4,6 +4,7 @@ module top_tile #(
     parameter I_F_BW = 8,
     parameter W_BW = 8,
     parameter M_BW = 16,
+    parameter AK_BW = 20,
     parameter ROWS = 5,
     parameter COLS = 5
 )
@@ -22,7 +23,7 @@ module top_tile #(
     output  [(I_F_BW*ROWS)-1:0]     o_fmap,
     output  [(W_BW*COLS)-1:0]       o_weight,
 
-    output  [(M_BW*COLS*ROWS)-1:0]  o_mul_result
+    output  [(AK_BW*COLS)-1:0]      o_acc_pp
 );
 
     wire [(ROWS*COLS)-1:0]      w_pe_en;
@@ -30,6 +31,7 @@ module top_tile #(
     wire [ROWS-1:0]             w_str_en;
 
     wire [(M_BW*COLS*ROWS)-1:0] w_mul_result;
+    wire [AK_BW-1:0]            w_ot_acc [4:0];
 
     // module instance
     tile_FSM u_FSM (
@@ -56,11 +58,18 @@ module top_tile #(
         .o_mul_result(w_mul_result)
     );
 
-    accumulator (
-        .clk(clk),
-        .rst_n(rst_n),
-        .i_mul_result(w_mul_result),
-        .os_acc_kernel(os_acc_kernel)
-    );
+    genvar i;
+    generate
+        for (i=0; i<COLS; i=i+1) begin
+            accumulator  u_acc (
+                .clk(clk),
+                .rst_n(rst_n),
+                .i_mul_result(w_mul_result),
+                .o_acc_kernel(w_ot_acc[i])
+            );
+        end
+    endgenerate
+
+    assign o_acc_pp = {w_ot_acc[4], w_ot_acc[3], w_ot_acc[2], w_ot_acc[1], w_ot_acc[0]};
 
 endmodule

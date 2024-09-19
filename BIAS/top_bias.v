@@ -1,50 +1,43 @@
 `timescale 1ns / 1ps
 
 module top_bias #(
+    parameter COLS = 5,
     parameter B_BW = 8,
-    parameter AK_BW = 20,
-    parameter AB_BW = 21
+    parameter AC_BW = 24,
+    parameter AB_BW = 25
 )
 (
-    input                   clk,
-    input                   rst_n,
-    input                   en,
-    input   [AK_BW-1:0]     i_acc_kernel0,
-    input   [AK_BW-1:0]     i_acc_kernel1,
-    input   [AK_BW-1:0]     i_acc_kernel2,
-    input   [B_BW-1:0]      i_bias,
-    output  [AB_BW-1:0]     o_acc_bias0,
-    output  [AB_BW-1:0]     o_acc_bias1,
-    output  [AB_BW-1:0]     o_acc_bias2
+    input                           clk,
+    input                           rst_n,
+    input                           en,
+
+    input   [B_BW-1:0]              i_bias,
+    input   [AC_BW*COLS-1:0]        i_acc_kernel,
+
+    output  [AB_BW*COLS-1:0]        o_acc_bias
 );
 
-wire [AB_BW-1:0] o_acc_bias_0, o_acc_bias_1, o_acc_bias_2;
+    wire [AC_BW-1:0] w_i_acc_bias [COLS-1:0];
+    wire [AB_BW-1:0] w_o_acc_bias [COLS-1:0];
 
-bias u_bias0 (
-    .clk(clk),
-    .rst_n(rst_n),
-    .en(en),
-    .i_acc_kernel(i_acc_kernel0),
-    .i_bias(i_bias),
-    .o_acc_bias(o_acc_bias_0)
-);
+    // bit slicing and module connect
+    genvar i;
+    generate
+        for (i=0; i<COLS; i=i+1) begin
+            assign w_i_acc_bias[i] = i_acc_kernel[(i+1)*AC_BW-1 -: AC_BW];
 
-bias u_bias1 (
-    .clk(clk),
-    .rst_n(rst_n),
-    .en(en),
-    .i_acc_kernel(i_acc_kernel1),
-    .i_bias(i_bias),
-    .o_acc_bias(o_acc_bias_1)
-);
+            bias u_bias (
+                .clk(clk),
+                .rst_n(rst_n),
+                .en(en),
+                .i_acc_kernel(w_i_acc_bias[i]),
+                .i_bias(i_bias),
+                .o_acc_bias(w_o_acc_bias[i])
+            );
 
-bias u_bias2 (
-    .clk(clk),
-    .rst_n(rst_n),
-    .en(en),
-    .i_acc_kernel(i_acc_kernel2),
-    .i_bias(i_bias),
-    .o_acc_bias(o_acc_bias_2)
-);
+            assign o_acc_bias[(i+1)*AB_BW-1 -: AB_BW] = w_o_acc_bias[i];
+
+        end
+    endgenerate
 
 endmodule

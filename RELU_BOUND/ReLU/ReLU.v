@@ -1,18 +1,19 @@
 `timescale 1ns / 1ps
 
 module ReLU #(
-    parameter D_BW = 8
+    parameter BO_BW = 8,
+    parameter ACT_BW = 8
 )
 (
-    input [D_BW-1:0] i_bound_data,
-    output [D_BW-1:0] o_act_data
+    input [BO_BW-1:0] i_bound_data,
+    output [ACT_BW-1:0] o_act_data
 );
 
 wire sign_bit;
 
-assign sign_bit = i_bound_data[D_BW-1];
+assign sign_bit = i_bound_data[ACT_BW-1];
 
-wire [D_BW-1:0] w_relu;
+wire [ACT_BW-1:0] w_relu;
 
 assign w_relu[0] = sign_bit ? 0 : i_bound_data[0];  
 assign w_relu[1] = sign_bit ? 0 : i_bound_data[1];
