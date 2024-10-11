@@ -1,117 +1,102 @@
 `timescale 1ns / 1ps
 
 module bias_bram_ctrl #(
-    parameter MEM_SIZE  = 49,
-    parameter AWIDTH    = 40,
+    parameter MEM_SIZE  = 40,
+    parameter MEM_DEPTH = 49,
     parameter B_BW      = 8
 )
 (
-    input clk,
-    input rst_n,
-    input i_run,
-    input [AWIDTH:0] i_num_cnt,
-    
-    // state out
-    output o_idle,
-    output o_write,
-    output o_read,
-    output o_done,
+    input                   clk,
+    input                   rst_n,
 
-    // Memory I/F
-    output [AWIDTH-1:0] addr0,
-    output              ce0,
-    output              we0,
-    input  [B_BW-1:0]   q0,
-    output [B_BW-1:0]   d0,
+    input  [MEM_SIZE-1:0]   din_a,
+    input  [5:0]            addr_a,
+    input                   we_a,
 
-    output              o_valid,
-    output [B_BW-1:0]   o_mem_data
+    input  [MEM_SIZE-1:0]   din_b,
+    input  [5:0]            addr_b,
+    input                   we_b,
+
+    input                   regcea,
+    input                   regceb,
+
+    output [MEM_SIZE-1:0]   dout_a,
+    output [MEM_SIZE-1:0]   dout_b
 );
+    // state machine define
+    localparam IDLE  = 2'b00;
+    localparam WRITE = 2'b01;
+    localparam READ  = 2'b10;
+    localparam DONE  = 2'b11;
 
-    localparam S_IDLE  = 2'b00;
-    localparam S_WRITE = 2'b01;
-    localparam S_READ  = 2'b10;
-    localparam S_DONE  = 2'b11;
+    // control signal define
+    reg [MEM_SIZE-1:0] dina, dinb;
+    reg wea, web, ena, enb;
+    reg [5:0] addra, addrb;
 
-    reg [1:0]   c_state;
-    reg [1:0]   n_state;
-    wire        is_write_done;
-    wire        is_read_done;
+    wire [MEM_SIZE-1:0] douta, doutb;
+
+    xilinx_true_dual_port_no_change_2_clock_ram #(
+        .RAM_WIDTH(40),
+        .RAM_DEPTH(49),
+        .RAM_PERFORMANCE("HIGH_PERFORMANCE")
+    ) ram_instance (
+        .addra(addra),
+        .addrb(addrb),
+        .dina(dina),
+        .dinb(dinb),
+        .clka(clk),
+        .clkb(clk),
+        .wea(wea),
+        .web(web),
+        .ena(ena),
+        .enb(enb),
+        .rsta(rst_n),
+        .rstb(rst_n),
+        .regcea(regcea),
+        .regceb(regceb),
+        .douta(douta),
+        .doutb(doutb)
+    );
+
+    assign dout_a = douta;
+    assign dout_b = doutb;
 
     always @ (posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            c_state <= S_IDLE;
+            addra       <= 0;
+            addrb       <= 0;
+            dina        <= 0;
+            dinb        <= 0;
+            wea         <= 0;
+            web         <= 0;
+            ena         <= 0;
+            enb         <= 0;
         end else begin
-            c_state <= n_state;
+            if (we_a) begin
+                addra   <= addr_a;
+                dina    <= din_a;
+                wea     <= 1;
+                ena     <= 1;
+            end else begin
+                addra   <= 0;
+                dina    <= 0;
+                wea     <= 0;
+                ena     <= 0;
+            end
+
+            if (we_b) begin
+                addrb   <= addr_b;
+                dinb    <= din_b;
+                web     <= 1;
+                enb     <= 1;
+            end else begin
+                addrb   <= 0;
+                dinb    <= 0;
+                web     <= 0;
+                enb     <= 0;
+            end
         end
     end
-
-    always @ (*) begin
-        n_state = c_state;
-        case (c_state)
-            S_IDLE  : if(i_run)
-                        n_state = S_WRITE;
-            S_WRITE : if(is_write_done)
-                        n_state = S_READ;
-            S_READ  : if(is_read_done)
-                        n_state = S_DONE;
-            S_DONE  : n_state = S_IDLE;
-        endcase
-    end
-
-    // always block to compute output
-    assign o_idle  = (c_state == S_IDLE);
-    assign o_write = (c_state == S_WRITE);
-    assign o_read  = (c_state == S_READ);
-    assign o_done  = (c_state == S_DONE);
-
-    // registering number of count
-    reg [AWIDTH:0] num_cnt;
-    always @ (posedge clk or negedge rst_n) begin
-        if (rst_n) begin
-            num_cnt <= 0;
-        end else if (i_run) begin
-            num_cnt <= i_num_cnt;
-        end else if (o_done) begin
-            num_cnt <= 0;
-        end
-    end
-
-    // increased addr_cnt
-    reg [AWIDTH:0] addr_cnt;
-    assign is_write_done = o_write && (addr_cnt == num_cnt-1);
-    assign is_read_done  = o_read  && (addr_cnt == num_cnt-1);
-
-    always @ (posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            addr_cnt <= 0;
-        end else if (is_write_done || is_read_done) begin
-            addr_cnt <= 0;
-        end else if (o_write || o_read) begin
-            addr_cnt <= addr_cnt + 1;
-        end
-    end
-
-    // Assign Memory I/F
-    assign addr0 = addr_cnt;
-    assign ce0   = o_write || o_read;
-    assign we0   = o_write;
-    assign d0    = addr_cnt;
-
-    // output data from memory
-    reg r_valid;
-    reg [B_BW-1:0] r_mem_data;
-
-    // 1cycle latency to sync mem output
-    always @ (posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            r_valid <= 0;
-        end else begin
-            r_valid <= o_read;
-        end
-    end
-
-    assign o_valid = r_valid;
-    assign o_mem_data = q0;
 
 endmodule

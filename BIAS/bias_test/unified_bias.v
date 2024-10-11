@@ -14,7 +14,7 @@ module unified_bias #(
     input   [B_BW-1:0]              i_bias,
     input   [AC_BW*COLS*COLS-1:0]   i_acc_kernel,
 
-    output  [AB_BW*COLS*COLS-1:0]   o_acc_bias
+    output  [AB_BW*COLS*COLS-1:0]   o_acc_bias0
 );
 
     wire [AC_BW*COLS-1:0] w_i_acc_bias [COLS-1:0];

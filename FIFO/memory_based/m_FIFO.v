@@ -7,7 +7,6 @@ module m_FIFO #(
 (
     input clk,
     input rst_n,
-    input i_wf,
     input wren,
     input rden,
     input [DWIDTH-1:0] wd,
