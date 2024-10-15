@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 module m_FIFO #(
-    parameter DWIDTH = 8,
+    parameter DWIDTH = 40,
     parameter DEPTH = 4
 )
 (

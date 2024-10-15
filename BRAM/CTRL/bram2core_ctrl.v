@@ -62,9 +62,6 @@ module bram2core_ctrl #(
     end
 
     // main logic
-    reg r_ena, r_regcea;
-    reg [5:0] r_addra;
-
     always @ (posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             c_state <= IDLE;
@@ -83,9 +80,9 @@ module bram2core_ctrl #(
 
     always @ (posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            r_ena       <= 0;
-            r_regcea    <= 0;
-            r_addra     <= 0;
+            ena         <= 0;
+            regcea      <= 0;
+            addr_a      <= 0;
             cnt_en      <= 0;
         end else begin
             case (c_state)
@@ -173,12 +170,5 @@ module bram2core_ctrl #(
             dout_a <= 0;
         end
     end
-
-
-
-
-
-
-
 
 endmodule

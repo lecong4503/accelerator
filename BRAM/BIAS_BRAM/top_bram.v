@@ -7,29 +7,34 @@ module top_bram #(
 (
     input                   clk,
     input                   rst_n,
-
     // bram ctrl
     input  [MEM_SIZE-1:0]   din_a,
-    input  [5:0]            addr_a,
     input                   we_a,
-
-    input  [MEM_SIZE-1:0]   din_b,
-    input  [5:0]            addr_b,
     input                   we_b,
+    input  [5:0]            addr_a,
+    input  [5:0]            addr_b,
 
+    output [MEM_SIZE-1:0]   dout_b,
     // bram2core
     input  [2:0]            layer_signal,
-    input                   full,
 
-    output                  wef,
     output [MEM_SIZE-1:0]   dout_a,
-    output [MEM_SIZE-1:0]   dout_b
+    input  [MEM_SIZE-1:0]   din_b,
+    // FIFO SIDE
+    input                   rden,
+
+    output                  empty,
+    // Core SIDE
+    input                   regceb
+    
 );
     
     wire [MEM_SIZE-1:0] w_dina;
     wire [5:0]          w_addr_a;
     wire                w_regcea;
     wire                w_ena;
+    wire                w_full;
+    wire                w_wef;
 
     // BRAM SIDE
     bias_bram_ctrl u_bram (
@@ -47,7 +52,6 @@ module top_bram #(
       .dout_b(dout_b)
     );
 
-    // FIFO SIDE
     bram2core_ctrl u_b2c (
         .clk(clk),
         .rst_n(rst_n),
@@ -56,9 +60,25 @@ module top_bram #(
         .addr_a(w_addr_a),
         .ena(w_ena),
         .regcea(w_regcea),
-        .full(full),
-        .dout_a(dout_a),
-        .wef(wef)
+        .full(w_full),
+        .dout_a(w_dout_a),
+        .wef(w_wef)
+    );
+
+    assign w_addr_a = addr_a;
+
+    // FIFO SIDE
+    wire [MEM_SIZE-1:0] w_dout_a;
+
+    m_FIFO u_FIFO (
+        .clk(clK),
+        .rst_n(rst_n),
+        .wd(w_dout_a),
+        .rd(dout_a),
+        .wren(w_wef),
+        .rden(rden),
+        .full(w_full),
+        .empty(empty)
     );
 
 endmodule
